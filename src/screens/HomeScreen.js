@@ -6,6 +6,7 @@ import {
   Button,
   StyleSheet,
   FlatList,
+  Pressable,
 } from 'react-native';
 
 import { useFocusEffect } from '@react-navigation/native';
@@ -13,6 +14,9 @@ import { buscarDespesas } from '../services/storage';
 
 export default function HomeScreen({ navigation }) {
   const [despesas, setDespesas] = useState([]);
+
+  const [mesSelecionado, setMesSelecionado] = useState(obterMesAtual());
+
 
   // Carrega as despesas sempre que a tela inicial recebe foco
   useFocusEffect(
@@ -35,14 +39,43 @@ export default function HomeScreen({ navigation }) {
   const mesAtual = String(hoje.getMonth() + 1).padStart(2, '0');
   const anoAtual = String(hoje.getFullYear());
 
-  // Soma somente as despesas do mês atual
+  /* Soma somente as despesas do mês atual
   const totalMensal = despesas
     .filter(despesa => {
       return despesa.data.startsWith(`${anoAtual}-${mesAtual}`);
     })
-    .reduce((total, despesa) => total + despesa.valor, 0);
+    .reduce((total, despesa) => total + despesa.valor, 0);*/
+
+    function mudarMes(diferenca) {
+    const [ano, mes] = mesSelecionado.split('-').map(Number);
+
+    const novaData = new Date(ano, mes - 1 + diferenca, 1);
+
+    const novoAno = novaData.getFullYear();
+    const novoMes = String(novaData.getMonth() + 1).padStart(2, '0');
+
+    setMesSelecionado(`${novoAno}-${novoMes}`);
+  }
 
   // Converte AAAA-MM-DD para DD-MM-AAAA
+  function formatarData(dataISO) {
+    const [ano, mes, dia] = dataISO.split('-');
+    return `${dia}-${mes}-${ano}`;
+  }
+
+
+  // Filtra as despesas do mês selecionado
+  const despesasFiltradas = despesas.filter(despesa =>
+    despesa.data.startsWith(mesSelecionado)
+  );
+
+  // Calcula o total somente das despesas filtradas
+  const totalMensal = despesasFiltradas.reduce(
+    (total, despesa) => total + despesa.valor,
+    0
+  );
+
+  // Converte AAAA-MM-DD para DD-MM-AAAA de novo
   function formatarData(dataISO) {
     const [ano, mes, dia] = dataISO.split('-');
     return `${dia}-${mes}-${ano}`;
@@ -94,6 +127,28 @@ export default function HomeScreen({ navigation }) {
             </Text>
           </View>
 
+          <View style={styles.seletorMes}>
+            <Pressable
+              style={styles.botaoMes}
+              onPress={() => mudarMes(-1)}
+            >
+              <Text style={styles.seta}>‹</Text>
+            </Pressable>
+
+            <Text style={styles.mesSelecionado}>
+              {formatarMes(mesSelecionado)}
+            </Text>
+
+            <Pressable
+              style={styles.botaoMes}
+              onPress={() => mudarMes(1)}
+            >
+              <Text style={styles.seta}>›</Text>
+            </Pressable>
+          </View>
+          
+
+
           <Button
             title="Adicionar despesa"
             onPress={() => navigation.navigate('AddExpense')}
@@ -110,6 +165,26 @@ export default function HomeScreen({ navigation }) {
     />
   );
 }
+
+
+// Retorna o mês atual no formato AAAA-MM
+function obterMesAtual() {
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+
+  return `${ano}-${mes}`;
+}
+
+function formatarMes(mesISO) {
+    const [ano, mes] = mesISO.split('-').map(Number);
+
+    return new Date(ano, mes - 1, 1).toLocaleDateString('pt-BR', {
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
 
 const styles = StyleSheet.create({
   lista: {
