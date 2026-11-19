@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 
 import {
@@ -12,11 +13,18 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { buscarDespesas } from '../services/storage';
 
+// Retorna o mês atual no formato AAAA-MM
+function obterMesAtual() {
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+
+  return `${ano}-${mes}`;
+}
+
 export default function HomeScreen({ navigation }) {
   const [despesas, setDespesas] = useState([]);
-
   const [mesSelecionado, setMesSelecionado] = useState(obterMesAtual());
-
 
   // Carrega as despesas sempre que a tela inicial recebe foco
   useFocusEffect(
@@ -34,19 +42,8 @@ export default function HomeScreen({ navigation }) {
     }, [])
   );
 
-  // Obtém o mês e o ano atuais
-  const hoje = new Date();
-  const mesAtual = String(hoje.getMonth() + 1).padStart(2, '0');
-  const anoAtual = String(hoje.getFullYear());
-
-  /* Soma somente as despesas do mês atual
-  const totalMensal = despesas
-    .filter(despesa => {
-      return despesa.data.startsWith(`${anoAtual}-${mesAtual}`);
-    })
-    .reduce((total, despesa) => total + despesa.valor, 0);*/
-
-    function mudarMes(diferenca) {
+  // Avança ou retrocede um mês
+  function mudarMes(diferenca) {
     const [ano, mes] = mesSelecionado.split('-').map(Number);
 
     const novaData = new Date(ano, mes - 1 + diferenca, 1);
@@ -57,12 +54,15 @@ export default function HomeScreen({ navigation }) {
     setMesSelecionado(`${novoAno}-${novoMes}`);
   }
 
-  // Converte AAAA-MM-DD para DD-MM-AAAA
-  function formatarData(dataISO) {
-    const [ano, mes, dia] = dataISO.split('-');
-    return `${dia}-${mes}-${ano}`;
-  }
+  // Converte AAAA-MM para o nome do mês e ano
+  function formatarMes(mesISO) {
+    const [ano, mes] = mesISO.split('-').map(Number);
 
+    return new Date(ano, mes - 1, 1).toLocaleDateString('pt-BR', {
+      month: 'long',
+      year: 'numeric',
+    });
+  }
 
   // Filtra as despesas do mês selecionado
   const despesasFiltradas = despesas.filter(despesa =>
@@ -75,7 +75,7 @@ export default function HomeScreen({ navigation }) {
     0
   );
 
-  // Converte AAAA-MM-DD para DD-MM-AAAA de novo
+  // Converte AAAA-MM-DD para DD-MM-AAAA
   function formatarData(dataISO) {
     const [ano, mes, dia] = dataISO.split('-');
     return `${dia}-${mes}-${ano}`;
@@ -94,6 +94,7 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.card}>
         <View style={styles.linha}>
           <Text style={styles.descricao}>{item.descricao}</Text>
+
           <Text style={styles.valor}>
             {formatarValor(item.valor)}
           </Text>
@@ -101,6 +102,7 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.linha}>
           <Text style={styles.categoria}>{item.categoria}</Text>
+
           <Text style={styles.data}>
             {formatarData(item.data)}
           </Text>
@@ -113,7 +115,7 @@ export default function HomeScreen({ navigation }) {
     <FlatList
       style={styles.lista}
       contentContainerStyle={styles.container}
-      data={despesas}
+      data={despesasFiltradas}
       keyExtractor={item => item.id}
       renderItem={renderizarDespesa}
       ListHeaderComponent={
@@ -121,12 +123,14 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.titulo}>Controle de Despesas</Text>
 
           <View style={styles.resumo}>
-            <Text style={styles.subtitulo}>Total gasto neste mês</Text>
+            <Text style={styles.subtitulo}>Total gasto no período</Text>
+
             <Text style={styles.total}>
               {formatarValor(totalMensal)}
             </Text>
           </View>
 
+          {/* Seletor de mês */}
           <View style={styles.seletorMes}>
             <Pressable
               style={styles.botaoMes}
@@ -146,45 +150,25 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.seta}>›</Text>
             </Pressable>
           </View>
-          
-
 
           <Button
             title="Adicionar despesa"
             onPress={() => navigation.navigate('AddExpense')}
           />
 
-          <Text style={styles.tituloLista}>Minhas despesas</Text>
+          <Text style={styles.tituloLista}>
+            Despesas do período
+          </Text>
         </View>
       }
       ListEmptyComponent={
         <Text style={styles.vazio}>
-          Nenhuma despesa cadastrada.
+          Nenhuma despesa cadastrada neste mês.
         </Text>
       }
     />
   );
 }
-
-
-// Retorna o mês atual no formato AAAA-MM
-function obterMesAtual() {
-  const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-
-  return `${ano}-${mes}`;
-}
-
-function formatarMes(mesISO) {
-    const [ano, mes] = mesISO.split('-').map(Number);
-
-    return new Date(ano, mes - 1, 1).toLocaleDateString('pt-BR', {
-      month: 'long',
-      year: 'numeric',
-    });
-  }
-
 
 const styles = StyleSheet.create({
   lista: {
@@ -220,6 +204,34 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1D4ED8',
     marginTop: 8,
+  },
+
+  seletorMes: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 5,
+  },
+
+  botaoMes: {
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+  },
+
+  seta: {
+    fontSize: 30,
+    color: '#2563EB',
+    fontWeight: 'bold',
+  },
+
+  mesSelecionado: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#374151',
+    textTransform: 'capitalize',
   },
 
   tituloLista: {
