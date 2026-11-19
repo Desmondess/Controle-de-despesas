@@ -8,10 +8,15 @@ import {
   StyleSheet,
   FlatList,
   Pressable,
+  Alert,
 } from 'react-native';
 
 import { useFocusEffect } from '@react-navigation/native';
-import { buscarDespesas } from '../services/storage';
+//import { buscarDespesas } from '../services/storage';
+import {
+  buscarDespesas,
+  excluirDespesa,
+} from '../services/storage';
 
 // Retorna o mês atual no formato AAAA-MM
 function obterMesAtual() {
@@ -89,6 +94,35 @@ export default function HomeScreen({ navigation }) {
     });
   }
 
+  function confirmarExclusao(despesa) {
+  Alert.alert(
+    'Excluir despesa',
+    `Deseja realmente excluir "${despesa.descricao}"?`,
+    [
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const listaAtualizada = await excluirDespesa(despesa.id);
+
+            setDespesas(listaAtualizada);
+          } catch (erro) {
+            Alert.alert(
+              'Erro',
+              'Não foi possível excluir a despesa.'
+            );
+          }
+        },
+      },
+    ]
+  );
+}
+
   function renderizarDespesa({ item }) {
     return (
       <View style={styles.card}>
@@ -107,7 +141,12 @@ export default function HomeScreen({ navigation }) {
             {formatarData(item.data)}
           </Text>
         </View>
+        <Button
+        title="Excluir"
+        color="#DC2626"
+        onPress={() => confirmarExclusao(item)}/>
       </View>
+      
     );
   }
 

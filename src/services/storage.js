@@ -59,3 +59,32 @@ export async function excluirDespesa(id) {
     throw erro;
   }
 }
+
+function confirmarExclusao(despesa) {
+  Alert.alert(
+    'Excluir despesa',
+    `Deseja realmente excluir "${despesa.descricao}"?`,
+    [
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const listaAtualizada = await excluirDespesa(despesa.id);
+
+            setDespesas(listaAtualizada);
+          } catch (erro) {
+            Alert.alert(
+              'Erro',
+              'Não foi possível excluir a despesa.'
+            );
+          }
+        },
+      },
+    ]
+  );
+}
