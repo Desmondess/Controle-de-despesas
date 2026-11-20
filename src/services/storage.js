@@ -64,3 +64,27 @@ export async function excluirDespesa(usuario, id) {
     throw erro;
   }
 }
+
+export async function atualizarDespesa(usuario, despesaAtualizada) {
+  try {
+    const chave = obterChaveDespesas(usuario);
+
+    const despesas = await buscarDespesas(usuario);
+
+    const listaAtualizada = despesas.map(despesa =>
+      despesa.id === despesaAtualizada.id
+        ? despesaAtualizada
+        : despesa
+    );
+
+    await AsyncStorage.setItem(
+      chave,
+      JSON.stringify(listaAtualizada)
+    );
+
+    return listaAtualizada;
+  } catch (erro) {
+    console.error('Erro ao atualizar despesa:', erro);
+    throw erro;
+  }
+}

@@ -125,31 +125,47 @@ export default function HomeScreen({ navigation, route }) {
 }
 
   function renderizarDespesa({ item }) {
-    return (
-      <View style={styles.card}>
-        <View style={styles.linha}>
-          <Text style={styles.descricao}>{item.descricao}</Text>
+  return (
+    <View style={styles.card}>
+      <View style={styles.linha}>
+        <Text style={styles.descricao}>{item.descricao}</Text>
 
-          <Text style={styles.valor}>
-            {formatarValor(item.valor)}
-          </Text>
-        </View>
-
-        <View style={styles.linha}>
-          <Text style={styles.categoria}>{item.categoria}</Text>
-
-          <Text style={styles.data}>
-            {formatarData(item.data)}
-          </Text>
-        </View>
-        <Button
-        title="Excluir"
-        color="#DC2626"
-        onPress={() => confirmarExclusao(item)}/>
+        <Text style={styles.valor}>
+          {formatarValor(item.valor)}
+        </Text>
       </View>
-      
-    );
-  }
+
+      <View style={styles.linha}>
+        <Text style={styles.categoria}>{item.categoria}</Text>
+
+        <Text style={styles.data}>
+          {formatarData(item.data)}
+        </Text>
+      </View>
+
+      <View style={styles.acoes}>
+        <Pressable
+          style={styles.botaoEditar}
+          onPress={() =>
+            navigation.navigate('AddExpense', {
+              usuario,
+              despesa: item,
+            })
+          }
+        >
+          <Text style={styles.textoBotaoEditar}>Editar</Text>
+        </Pressable>
+
+        <Pressable
+          style={styles.botaoExcluir}
+          onPress={() => confirmarExclusao(item)}
+        >
+          <Text style={styles.textoBotaoExcluir}>Excluir</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
 
   return (
     <FlatList
@@ -208,7 +224,7 @@ export default function HomeScreen({ navigation, route }) {
 
           <Button
             title="Adicionar despesa"
-            onPress={() => navigation.navigate('AddExpense', {usuario,})}
+            onPress={() => navigation.navigate('AddExpense', {usuario})}
           />
 
           <Text style={styles.tituloLista}>

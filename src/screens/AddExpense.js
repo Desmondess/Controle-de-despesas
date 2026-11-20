@@ -11,7 +11,10 @@ import {
   ScrollView,
 } from 'react-native';
 
-import { salvarDespesa } from '../services/storage';
+import {
+  salvarDespesa,
+  atualizarDespesa,
+} from '../services/storage';
 
 const CATEGORIAS = [
   'Alimentação',
@@ -24,19 +27,32 @@ const CATEGORIAS = [
 ];
 
 export default function AddExpenseScreen({ navigation, route }) {
-  const { usuario } = route.params;
-  const [descricao, setDescricao] = useState('');
-  //const [valor, setValor] = useState('');
-  const [centavos, setCentavos] = useState(0);
+  const { usuario, despesa } = route.params;
 
-  const [data, setData] = useState(obterDataLocal());
+  // Verifica se a tela foi aberta para edição
+  const modoEdicao = !!despesa;
 
+  // Inicializa os campos com os dados existentes,
+  // caso esteja editando uma despesan
+  const [descricao, setDescricao] = useState(
+    despesa ? despesa.descricao : ''
+  );
 
-  const [categoria, setCategoria] = useState('');
+  const [centavos, setCentavos] = useState(
+    despesa ? Math.round(Number(despesa.valor) * 100) : 0
+  );
+
+  const [data, setData] = useState(
+    despesa ? converterDataParaExibicao(despesa.data) : obterDataLocal()
+  );
+
+  const [categoria, setCategoria] = useState(
+    despesa ? despesa.categoria : ''
+  );
 
   async function cadastrarDespesa() {
     // Verifica os campos obrigatórios
-    if (!descricao.trim() || !valor.trim() || !data || !categoria) {
+    if (!descricao.trim() || centavos <= 0 || !data || !categoria) {
       Alert.alert(
         'Campos obrigatórios',
         'Preencha todos os campos.'
@@ -44,8 +60,8 @@ export default function AddExpenseScreen({ navigation, route }) {
       return;
     }
 
-    // Aceita valores com ponto ou vírgula decimal
-    const valorNumerico = Number(valor.replace(',', '.'));
+    // Converte os centavos para reais
+    const valorNumerico = centavos / 100;
 
     if (!Number.isFinite(valorNumerico) || valorNumerico <= 0) {
       Alert.alert(
@@ -56,39 +72,39 @@ export default function AddExpenseScreen({ navigation, route }) {
     }
 
     // Valida o formato DD-MM-AAAA
-const dataValida = /^\d{2}-\d{2}-\d{4}$/.test(data);
+    const dataValida = /^\d{2}-\d{2}-\d{4}$/.test(data);
 
-if (!dataValida) {
-  Alert.alert(
-    'Data inválida',
-    'Informe a data no formato DD-MM-AAAA.'
-  );
-  return;
-}
+    if (!dataValida) {
+      Alert.alert(
+        'Data inválida',
+        'Informe a data no formato DD-MM-AAAA.'
+      );
+      return;
+    }
 
-const [dia, mes, ano] = data.split('-').map(Number);
+    const [dia, mes, ano] = data.split('-').map(Number);
 
-const dataObj = new Date(ano, mes - 1, dia);
+    const dataObj = new Date(ano, mes - 1, dia);
 
-if (
-  dataObj.getFullYear() !== ano ||
-  dataObj.getMonth() !== mes - 1 ||
-  dataObj.getDate() !== dia
-) {
-  Alert.alert(
-    'Data inválida',
-    'A data informada não existe.'
-  );
-  return;
-}
+    if (
+      dataObj.getFullYear() !== ano ||
+      dataObj.getMonth() !== mes - 1 ||
+      dataObj.getDate() !== dia
+    ) {
+      Alert.alert(
+        'Data inválida',
+        'A data informada não existe.'
+      );
+      return;
+    }
 
-// Converte para AAAA-MM-DD antes de armazenar
-const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    // Converte para AAAA-MM-DD antes de armazenar
+    const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
 
-
-
-    const novaDespesa = {
-      id: Date.now().toString(),
+    // Mantém o ID original na edição
+    // e gera um novo ID no cadastro
+    const despesaAtualizada = {
+      id: modoEdicao ? despesa.id : Date.now().toString(),
       descricao: descricao.trim(),
       valor: valorNumerico,
       data: dataISO,
@@ -96,11 +112,17 @@ const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2
     };
 
     try {
-      await salvarDespesa(usuario, novaDespesa);
+      if (modoEdicao) {
+        await atualizarDespesa(usuario, despesaAtualizada);
+      } else {
+        await salvarDespesa(usuario, despesaAtualizada);
+      }
 
       Alert.alert(
         'Sucesso',
-        'Despesa cadastrada!',
+        modoEdicao
+          ? 'Despesa atualizada com sucesso!'
+          : 'Despesa cadastrada com sucesso!',
         [
           {
             text: 'OK',
@@ -111,16 +133,35 @@ const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2
     } catch (erro) {
       Alert.alert(
         'Erro',
-        'Não foi possível salvar a despesa.'
+        modoEdicao
+          ? 'Não foi possível atualizar a despesa.'
+          : 'Não foi possível salvar a despesa.'
       );
     }
   }
 
+  function formatarMoeda(totalCentavos) {
+    const reais = (totalCentavos / 100).toFixed(2);
+    return reais.replace('.', ',');
+  }
+
+  function handleChangeValor(texto) {
+    // Mantém apenas os dígitos
+    const digitos = texto.replace(/\D/g, '');
+
+    const novoTotal = digitos ? Number(digitos) : 0;
+
+    setCentavos(novoTotal);
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.titulo}>Nova despesa</Text>
+      <Text style={styles.titulo}>
+        {modoEdicao ? 'Editar despesa' : 'Nova despesa'}
+      </Text>
 
       <Text style={styles.label}>Descrição</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Ex: Almoço"
@@ -129,6 +170,7 @@ const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2
       />
 
       <Text style={styles.label}>Valor (R$)</Text>
+
       <TextInput
         style={styles.input}
         placeholder="0,00"
@@ -138,6 +180,7 @@ const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2
       />
 
       <Text style={styles.label}>Data (DD-MM-AAAA)</Text>
+
       <TextInput
         style={styles.input}
         placeholder="01-08-2026"
@@ -164,26 +207,50 @@ const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2
       </View>
 
       <Button
-        title="Salvar despesa"
+        title={modoEdicao ? 'Salvar alterações' : 'Salvar despesa'}
         onPress={cadastrarDespesa}
       />
     </ScrollView>
   );
-
-
-function formatarMoeda(totalCentavos) {
-  const reais = (totalCentavos / 100).toFixed(2);
-  return reais.replace('.', ',');
 }
 
-function handleChangeValor(texto) {
-  // Mantém apenas dígitos; ao apagar, o valor numérico diminui naturalmente
-  const digitos = texto.replace(/\D/g, '');
-  const novoTotal = digitos ? Number(digitos) : 0;
-  setCentavos(novoTotal);
+// Retorna a data atual no formato DD-MM-AAAA
+function obterDataLocal() {
+  const hoje = new Date();
+
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoje.getDate()).padStart(2, '0');
+
+  return `${dia}-${mes}-${ano}`;
 }
 
+// Converte AAAA-MM-DD para DD-MM-AAAA
+function converterDataParaExibicao(dataISO) {
+  if (!dataISO) {
+    return obterDataLocal();
+  }
 
+  const [ano, mes, dia] = dataISO.split('-');
+
+  return `${dia}-${mes}-${ano}`;
+}
+
+// Formata automaticamente a data digitada
+function formatarData(texto) {
+  // Remove tudo que não for número
+  const numeros = texto.replace(/\D/g, '').slice(0, 8);
+
+  // Adiciona os hífens automaticamente
+  if (numeros.length <= 2) {
+    return numeros;
+  }
+
+  if (numeros.length <= 4) {
+    return `${numeros.slice(0, 2)}-${numeros.slice(2)}`;
+  }
+
+  return `${numeros.slice(0, 2)}-${numeros.slice(2, 4)}-${numeros.slice(4)}`;
 }
 
 const styles = StyleSheet.create({
@@ -228,29 +295,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-function obterDataLocal() {
-  const hoje = new Date();
-
-  const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-  const dia = String(hoje.getDate()).padStart(2, '0');
-
-  return `${dia}-${mes}-${ano}`;
-}
-
-function formatarData(texto) {
-  // Remove tudo que não for número
-  const numeros = texto.replace(/\D/g, '').slice(0, 8);
-
-  // Adiciona os hífens automaticamente
-  if (numeros.length <= 2) {
-    return numeros;
-  }
-
-  if (numeros.length <= 4) {
-    return `${numeros.slice(0, 2)}-${numeros.slice(2)}`;
-  }
-
-  return `${numeros.slice(0, 2)}-${numeros.slice(2, 4)}-${numeros.slice(4)}`;
-}
