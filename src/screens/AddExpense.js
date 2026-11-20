@@ -139,8 +139,9 @@ const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2
       <TextInput
         style={styles.input}
         placeholder="01-08-2026"
+        keyboardType="numeric"
         value={data}
-        onChangeText={setData}
+        onChangeText={(texto) => setData(formatarData(texto))}
       />
 
       <Text style={styles.label}>Categoria</Text>
@@ -219,4 +220,20 @@ function obterDataLocal() {
   const dia = String(hoje.getDate()).padStart(2, '0');
 
   return `${dia}-${mes}-${ano}`;
+}
+
+function formatarData(texto) {
+  // Remove tudo que não for número
+  const numeros = texto.replace(/\D/g, '').slice(0, 8);
+
+  // Adiciona os hífens automaticamente
+  if (numeros.length <= 2) {
+    return numeros;
+  }
+
+  if (numeros.length <= 4) {
+    return `${numeros.slice(0, 2)}-${numeros.slice(2)}`;
+  }
+
+  return `${numeros.slice(0, 2)}-${numeros.slice(2, 4)}-${numeros.slice(4)}`;
 }
