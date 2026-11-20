@@ -26,7 +26,8 @@ const CATEGORIAS = [
 export default function AddExpenseScreen({ navigation, route }) {
   const { usuario } = route.params;
   const [descricao, setDescricao] = useState('');
-  const [valor, setValor] = useState('');
+  //const [valor, setValor] = useState('');
+  const [centavos, setCentavos] = useState(0);
 
   const [data, setData] = useState(obterDataLocal());
 
@@ -130,10 +131,10 @@ const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2
       <Text style={styles.label}>Valor (R$)</Text>
       <TextInput
         style={styles.input}
-        placeholder="Ex: 35,50"
-        keyboardType="decimal-pad"
-        value={valor}
-        onChangeText={setValor}
+        placeholder="0,00"
+        keyboardType="number-pad"
+        value={formatarMoeda(centavos)}
+        onChangeText={handleChangeValor}
       />
 
       <Text style={styles.label}>Data (DD-MM-AAAA)</Text>
@@ -168,6 +169,21 @@ const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2
       />
     </ScrollView>
   );
+
+
+function formatarMoeda(totalCentavos) {
+  const reais = (totalCentavos / 100).toFixed(2);
+  return reais.replace('.', ',');
+}
+
+function handleChangeValor(texto) {
+  // Mantém apenas dígitos; ao apagar, o valor numérico diminui naturalmente
+  const digitos = texto.replace(/\D/g, '');
+  const novoTotal = digitos ? Number(digitos) : 0;
+  setCentavos(novoTotal);
+}
+
+
 }
 
 const styles = StyleSheet.create({
