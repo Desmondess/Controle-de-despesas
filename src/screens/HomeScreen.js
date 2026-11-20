@@ -356,4 +356,36 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 15,
   },
+
+  acoes: {
+  flexDirection: 'row',
+  justifyContent: 'flex-end',
+  gap: 10,
+  marginTop: 10,
+},
+
+botaoEditar: {
+  backgroundColor: '#2563EB',
+  paddingVertical: 9,
+  paddingHorizontal: 18,
+  borderRadius: 8,
+},
+
+textoBotaoEditar: {
+  color: '#FFFFFF',
+  fontWeight: 'bold',
+},
+
+botaoExcluir: {
+  backgroundColor: '#DC2626',
+  paddingVertical: 9,
+  paddingHorizontal: 18,
+  borderRadius: 8,
+},
+
+textoBotaoExcluir: {
+  color: '#FFFFFF',
+  fontWeight: 'bold',
+},
+
 });
