@@ -27,7 +27,8 @@ function obterMesAtual() {
   return `${ano}-${mes}`;
 }
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({ navigation, route }) {
+  const { usuario } = route.params;
   const [despesas, setDespesas] = useState([]);
   const [mesSelecionado, setMesSelecionado] = useState(obterMesAtual());
 
@@ -35,7 +36,7 @@ export default function HomeScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       async function carregarDespesas() {
-        const lista = await buscarDespesas();
+        const lista = await buscarDespesas(usuario);
 
         // Ordena da mais recente para a mais antiga
         lista.sort((a, b) => b.data.localeCompare(a.data));
@@ -44,7 +45,7 @@ export default function HomeScreen({ navigation }) {
       }
 
       carregarDespesas();
-    }, [])
+    }, [usuario])
   );
 
   // Avança ou retrocede um mês
@@ -108,7 +109,7 @@ export default function HomeScreen({ navigation }) {
         style: 'destructive',
         onPress: async () => {
           try {
-            const listaAtualizada = await excluirDespesa(despesa.id);
+            const listaAtualizada = await excluirDespesa(usuario, despesa.id);
 
             setDespesas(listaAtualizada);
           } catch (erro) {
@@ -159,6 +160,21 @@ export default function HomeScreen({ navigation }) {
       renderItem={renderizarDespesa}
       ListHeaderComponent={
         <View>
+          <Text style={styles.subtitulo}>
+            Olá, {usuario}!
+          </Text>
+
+          <Button
+            title="Sair"
+            color="#DC2626"
+            onPress={() =>
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              })
+            }
+          />
+
           <Text style={styles.titulo}>Controle de Despesas</Text>
 
           <View style={styles.resumo}>
@@ -192,7 +208,7 @@ export default function HomeScreen({ navigation }) {
 
           <Button
             title="Adicionar despesa"
-            onPress={() => navigation.navigate('AddExpense')}
+            onPress={() => navigation.navigate('AddExpense', {usuario,})}
           />
 
           <Text style={styles.tituloLista}>

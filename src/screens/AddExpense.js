@@ -23,7 +23,8 @@ const CATEGORIAS = [
   'Outros',
 ];
 
-export default function AddExpenseScreen({ navigation }) {
+export default function AddExpenseScreen({ navigation, route }) {
+  const { usuario } = route.params;
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
 
@@ -94,7 +95,7 @@ const dataISO = `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2
     };
 
     try {
-      await salvarDespesa(novaDespesa);
+      await salvarDespesa(usuario, novaDespesa);
 
       Alert.alert(
         'Sucesso',

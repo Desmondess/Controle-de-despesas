@@ -1,12 +1,18 @@
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const CHAVE_DESPESAS = '@controle_despesas';
+// Gera uma chave específica para cada usuário
+function obterChaveDespesas(usuario) {
+  const nomeNormalizado = usuario.trim().toLowerCase();
 
-// Busca todas as despesas armazenadas
-export async function buscarDespesas() {
+  return `@controle_despesas_${nomeNormalizado}`;
+}
+
+// Busca as despesas de um usuário
+export async function buscarDespesas(usuario) {
   try {
-    const dados = await AsyncStorage.getItem(CHAVE_DESPESAS);
+    const chave = obterChaveDespesas(usuario);
+
+    const dados = await AsyncStorage.getItem(chave);
 
     return dados ? JSON.parse(dados) : [];
   } catch (erro) {
@@ -15,21 +21,18 @@ export async function buscarDespesas() {
   }
 }
 
-// Salva uma nova despesa
-export async function salvarDespesa(novaDespesa) {
+// Salva uma nova despesa para determinado usuário
+export async function salvarDespesa(usuario, novaDespesa) {
   try {
-    const despesas = await buscarDespesas();
+    const chave = obterChaveDespesas(usuario);
+
+    const despesas = await buscarDespesas(usuario);
 
     const listaAtualizada = [...despesas, novaDespesa];
 
     await AsyncStorage.setItem(
-      CHAVE_DESPESAS,
+      chave,
       JSON.stringify(listaAtualizada)
-    );
-
-    console.log(
-      'DESPESAS ARMAZENADAS',
-      JSON.stringify(listaAtualizada, null, 2)
     );
 
     return listaAtualizada;
@@ -40,16 +43,18 @@ export async function salvarDespesa(novaDespesa) {
 }
 
 // Exclui uma despesa pelo identificador
-export async function excluirDespesa(id) {
+export async function excluirDespesa(usuario, id) {
   try {
-    const despesas = await buscarDespesas();
+    const chave = obterChaveDespesas(usuario);
+
+    const despesas = await buscarDespesas(usuario);
 
     const listaAtualizada = despesas.filter(
       despesa => despesa.id !== id
     );
 
     await AsyncStorage.setItem(
-      CHAVE_DESPESAS,
+      chave,
       JSON.stringify(listaAtualizada)
     );
 
@@ -58,33 +63,4 @@ export async function excluirDespesa(id) {
     console.error('Erro ao excluir despesa:', erro);
     throw erro;
   }
-}
-
-function confirmarExclusao(despesa) {
-  Alert.alert(
-    'Excluir despesa',
-    `Deseja realmente excluir "${despesa.descricao}"?`,
-    [
-      {
-        text: 'Cancelar',
-        style: 'cancel',
-      },
-      {
-        text: 'Excluir',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const listaAtualizada = await excluirDespesa(despesa.id);
-
-            setDespesas(listaAtualizada);
-          } catch (erro) {
-            Alert.alert(
-              'Erro',
-              'Não foi possível excluir a despesa.'
-            );
-          }
-        },
-      },
-    ]
-  );
 }
