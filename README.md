@@ -50,6 +50,7 @@ Essas dependências adicionais podem ser utilizadas para expandir e aprimorar a 
 - **Ordenação cronológica:** organiza as despesas da mais recente para a mais antiga.
 - **Resumo mensal:** calcula e apresenta o total gasto no mês selecionado.
 - **Filtro por mês:** permite selecionar diferentes meses, atualizando a listagem e o total de despesas conforme o período selecionado.
+- **Edição de despesas:** permite atualizar as informações de despesas já cadastradas, atualizando a listagem e o resumo mensal.
 - **Exclusão de despesas:** permite remover registros mediante confirmação, atualizando a listagem e o resumo mensal.
 
 ### Persistência e funcionamento offline
