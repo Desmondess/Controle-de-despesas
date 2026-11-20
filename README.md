@@ -1,0 +1,140 @@
+# Controle de Despesas
+
+Aplicativo mobile desenvolvido com **React Native e Expo**, destinado ao registro e acompanhamento de despesas pessoais.
+
+O projeto permite cadastrar despesas, visualizar os registros por ordem cronológica, consultar o total gasto em determinado mês e excluir despesas. As informações são armazenadas localmente no dispositivo, possibilitando a persistência dos dados sem depender de um servidor externo.
+
+## Tecnologias e dependências
+
+O projeto utiliza as seguintes tecnologias e bibliotecas:
+
+| Tecnologia / Biblioteca | Versão | Finalidade |
+|---|---|---|
+| JavaScript | ES Modules | Linguagem utilizada no desenvolvimento. |
+| React | 19.3.0 | Construção da interface e gerenciamento de estados. |
+| React Native | 0.88.1 | Desenvolvimento da aplicação mobile. |
+| Expo | ~58.0.25 | Ambiente e ferramentas para desenvolvimento e execução do aplicativo. |
+| React Navigation Native | ^7.5.2 | Gerenciamento da navegação entre telas. |
+| React Navigation Native Stack | ^7.21.1 | Implementação da navegação em pilha. |
+| AsyncStorage | 2.2.0 | Armazenamento local e persistência das despesas. |
+| React Native Screens | ~4.30.1 | Integração e otimização das telas de navegação. |
+| React Native Safe Area Context | ~5.11.1 | Gerenciamento das áreas seguras da interface. |
+
+### Dependências adicionais instaladas
+
+As seguintes bibliotecas também estão presentes no projeto, mas ainda não são utilizadas diretamente na implementação atual:
+
+- **date-fns:** biblioteca auxiliar para manipulação e formatação de datas.
+- **@expo/vector-icons:** disponibiliza conjuntos de ícones para a interface.
+- **expo-status-bar:** permite controlar a aparência da barra de status do dispositivo.
+
+## Funcionalidades implementadas
+
+- **Cadastro de despesas:** permite registrar despesas informando descrição, valor, data e categoria.
+- **Validação dos dados:** verifica o preenchimento dos campos obrigatórios, impede valores não numéricos ou menores ou iguais a zero e valida o formato e a existência da data informada.
+- **Categorias:** disponibiliza as categorias Alimentação, Transporte, Moradia, Saúde, Lazer, Educação e Outros.
+- **Listagem de despesas:** apresenta descrição, valor, data e categoria de cada registro.
+- **Ordenação cronológica:** organiza as despesas da mais recente para a mais antiga.
+- **Resumo mensal:** calcula e apresenta o total gasto no mês selecionado.
+- **Filtro por mês:** permite avançar e retroceder entre os meses, atualizando a listagem e o total de despesas conforme o período selecionado.
+- **Exclusão de despesas:** permite remover registros mediante confirmação, atualizando os dados exibidos e o total mensal.
+- **Persistência local:** armazena as despesas no dispositivo utilizando AsyncStorage, mantendo os registros disponíveis após o fechamento do aplicativo.
+- **Funcionamento offline:** permite cadastrar, consultar e excluir despesas sem depender de conexão com a internet ou de uma API externa.
+
+## Requisitos para execução
+
+Para executar o projeto, é necessário ter instalado:
+
+- [Node.js](https://nodejs.org/) (versão LTS recomendada).
+- npm (instalado junto com o Node.js).
+- [Expo Go](https://expo.dev/go) em um dispositivo Android.
+- Git (opcional, para clonar o repositório).
+
+## Instalação e execução
+
+### 1. Clonar o repositório
+
+```bash
+git clone URL_DO_REPOSITORIO
+```
+
+Substitua `URL_DO_REPOSITORIO` pelo endereço do repositório no GitHub.
+
+### 2. Acessar a pasta do projeto
+
+```bash
+cd controle-despesas
+```
+
+### 3. Instalar as dependências
+
+```bash
+npm install
+```
+
+### 4. Iniciar o servidor de desenvolvimento
+
+```bash
+npx expo start
+```
+
+Após a inicialização, será exibido um QR Code no terminal ou na interface do Expo.
+
+### 5. Executar no dispositivo Android
+
+1. Instale e abra o aplicativo Expo Go no celular.
+2. Conecte o computador e o celular à mesma rede Wi-Fi.
+3. Escaneie o QR Code exibido pelo Expo.
+4. Aguarde o carregamento da aplicação.
+
+Caso ocorram problemas de conexão pela rede local, utilize:
+
+```bash
+npx expo start --tunnel
+```
+
+## Estrutura do projeto
+
+```text
+controle-despesas/
+│
+├── assets/
+│
+├── src/
+│   ├── screens/
+│   │   ├── AddExpense.js
+│   │   └── HomeScreen.js
+│   │
+│   └── services/
+│       └── storage.js
+│
+├── App.js
+├── index.js
+├── app.json
+├── package.json
+└── README.md
+```
+
+### Organização dos arquivos
+
+- **App.js:** configura a navegação entre as telas do aplicativo utilizando React Navigation.
+- **src/screens/HomeScreen.js:** apresenta a listagem de despesas, o resumo mensal, o filtro por mês e a funcionalidade de exclusão.
+- **src/screens/AddExpense.js:** contém o formulário de cadastro e a validação das informações da despesa.
+- **src/services/storage.js:** centraliza as operações de armazenamento, consulta e exclusão de despesas utilizando AsyncStorage.
+- **assets/:** armazena os recursos estáticos utilizados pelo aplicativo.
+- **app.json:** contém as configurações do projeto Expo.
+- **package.json:** registra as dependências e os comandos disponíveis para execução do projeto.
+
+## Armazenamento dos dados
+
+O aplicativo utiliza o **AsyncStorage** para armazenar as despesas localmente no dispositivo.
+
+Os registros são armazenados em formato JSON, utilizando a chave `@controle_despesas`. As informações são convertidas para uma string JSON antes do armazenamento e recuperadas posteriormente para utilização na aplicação.
+
+As datas são armazenadas no formato `AAAA-MM-DD`, facilitando a ordenação cronológica e a filtragem mensal, enquanto são apresentadas ao usuário no formato `DD-MM-AAAA`.
+
+Dessa forma, os dados permanecem disponíveis após o encerramento do aplicativo, sem necessidade de conexão com um servidor externo.
+
+---
+
+**Projeto desenvolvido como parte de um processo seletivo para desenvolvimento mobile.**
